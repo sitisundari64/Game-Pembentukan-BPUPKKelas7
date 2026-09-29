@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tantangan BPUPK: Benar atau Salah?</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- MediaPipe Hands & Camera Utils JS Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 50%, #fee2e2 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 25px -5px rgba(185, 28, 28, 0.1), 0 8px 10px -6px rgba(185, 28, 28, 0.05);
+        }
+
+        .batik-pattern {
+            background-color: #991b1b;
+            background-image: radial-gradient(#dc2626 1px, transparent 1px), radial-gradient(#dc2626 1px, #991b1b 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            opacity: 0.95;
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .animate-pulse-slow {
+            animation: pulse-slow 2.5s infinite ease-in-out;
+        }
+
+        /* Mirrored video preview for natural camera interaction */
+        .mirror-video {
+            transform: scaleX(-1);
+        }
+
+        .holding-ring {
+            transition: stroke-dashoffset 0.1s linear;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col justify-between min-h-screen">
+
+    <!-- Header / Navbar -->
+    <header class="bg-red-700 text-white shadow-md border-b-4 border-amber-400 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-400 text-red-900 font-extrabold w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                    🇮🇩
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg md:text-xl leading-tight tracking-wide">TANTANGAN BPUPK</h1>
+                    <p class="text-xs text-red-200 font-medium hidden sm:block">Pendidikan Pancasila Kelas VII SMP</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleModal('modal-petunjuk', true)" class="bg-red-800 hover:bg-red-900 text-amber-200 text-xs md:text-sm font-semibold px-3 py-2 rounded-lg transition border border-red-500/40 flex items-center space-x-1 shadow-sm">
+                    <i class="fa-solid fa-circle-question text-amber-400"></i>
+                    <span>Petunjuk</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-5xl mx-auto px-4 py-6 flex-grow w-full flex items-center justify-center">
+
+        <!-- 1. HALAMAN PEMBUKA / START SCREEN -->
+        <section id="screen-start" class="w-full glass-card rounded-3xl p-6 md:p-10 transition-all duration-300">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                
+                <!-- Left Column: Title & Form -->
+                <div class="md:col-span-7 space-y-6">
+                    <div class="inline-flex items-center space-x-2 bg-red-100 border border-red-300 text-red-800 text-xs font-bold px-3 py-1 rounded-full">
+                        <span>🏛️ Murni Pembelajaran Sejarah & Pancasila</span>
+                    </div>
+
+                    <div>
+                        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">
+                            Sejarah Pembentukan BPUPK & Suasana Persidangan
+                        </h2>
+                        <p class="text-slate-600 text-sm md:text-base mt-2">
+                            Uji pemahamanmu tentang perumusan dasar negara Indonesia melalui game gestur tangan interaktif berbasis kamera!
+                        </p>
+                    </div>
+
+                    <!-- Input Data Siswa -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Lengkap Siswa</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-user"></i>
+                                </span>
+                                <input type="text" id="input-nama" placeholder="Masukkan nama kamu..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm outline-none transition">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Kelas (SMP)</label>
+                            <select id="input-kelas" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm outline-none transition">
+                                <option value="VII A">Kelas VII A</option>
+                                <option value="VII B">Kelas VII B</option>
+                                <option value="VII C">Kelas VII C</option>
+                                <option value="VII D">Kelas VII D</option>
+                                <option value="VII E">Kelas VII E</option>
+                                <option value="VII F">Kelas VII F</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Aksi Pembuka -->
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button onclick="startGame()" class="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-red-600/30 hover:shadow-red-600/50 transition transform hover:-translate-y-0.5 active:translate-y-0 text-center flex items-center justify-center space-x-2 text-base">
+                            <i class="fa-solid fa-play"></i>
+                            <span>MULAI PERMAINAN</span>
+                        </button>
+                        <button onclick="showReviewMaterial()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold py-3.5 px-5 rounded-2xl border border-amber-300 transition text-center flex items-center justify-center space-x-2 text-sm">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>Rangkuman Materi</span>
+                        </button>
+                    </div>
+
+                    <!-- Privacy Info Badge -->
+                    <div class="flex items-start space-x-3 bg-slate-100/80 p-3.5 rounded-xl border border-slate-200/80 text-xs text-slate-600">
+                        <i class="fa-solid fa-shield-halved text-emerald-600 text-base mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-slate-800 block">🔒 PRIVASI SISWA TERJAMIN</span>
+                            Kamera hanya digunakan secara lokal di browser untuk memproses gerakan tangan. Tidak ada foto, video, maupun data pribadi yang disimpan atau diunggah.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Hero Visual/Illustration -->
+                <div class="md:col-span-5 flex flex-col items-center justify-center">
+                    <div class="w-full batik-pattern p-6 rounded-3xl text-white shadow-xl relative overflow-hidden text-center border-4 border-amber-400/50">
+                        <!-- Decorative overlay -->
+                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/20 rounded-full blur-2xl"></div>
+                        
+                        <div class="relative z-10 space-y-4">
+                            <div class="inline-block p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                                <i class="fa-solid fa-landmark-flag text-5xl text-amber-300 animate-pulse-slow"></i>
+                            </div>
+                            <div>
+                                <span class="bg-amber-400 text-red-950 text-xs font-black uppercase px-2.5 py-0.5 rounded-full">29 Mei - 1 Juni 1945</span>
+                                <h3 class="text-xl font-extrabold mt-1">Gedung Chuuou Sangi-In</h3>
+                                <p class="text-xs text-red-100 mt-1 leading-relaxed">
+                                    "Merumuskan dasar negara dalam suasana musyawarah, saling menghormati, dan berjiwa nasionalis."
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 text-left bg-black/20 p-3 rounded-xl border border-white/10 text-xs">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg">✋</span>
+                                    <span>Tangan Kanan: <b>BENAR</b></span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg">🤚</span>
+                                    <span>Tangan Kiri: <b>SALAH</b></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. HALAMAN GAMEPLAY -->
+        <section id="screen-game" class="w-full glass-card rounded-3xl p-4 md:p-8 hidden transition-all duration-300">
+            <!-- Top Status Bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <span id="badge-soal" class="bg-red-700 text-white text-xs font-black px-3 py-1.5 rounded-xl shadow-sm">
+                        SOAL 1/15
+                    </span>
+                    <span id="badge-kesulitan" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-xl border border-emerald-300">
+                        🟢 Mudah
+                    </span>
+                    <span id="badge-kategori" class="text-xs font-semibold text-slate-500 truncate max-w-[150px] sm:max-w-[200px]">
+                        Latar Belakang
+                    </span>
+                </div>
+
+                <div class="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-end">
+                    <div class="text-right">
+                        <span class="text-xs text-slate-500 font-bold block">SKOR SEMENTARA</span>
+                        <span id="text-skor" class="text-lg font-extrabold text-red-700">0</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-500 font-bold block">WAKTU</span>
+                        <span id="text-timer" class="text-base font-mono font-bold text-slate-700">00:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 h-2.5 rounded-full my-4 overflow-hidden">
+                <div id="progress-bar" class="bg-gradient-to-r from-red-600 to-amber-500 h-2.5 rounded-full transition-all duration-500" style="width: 6.66%;"></div>
+            </div>
+
+            <!-- Main Question & Camera Grid Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-2">
+                
+                <!-- Left Column: Question Card & Fallback Interactive Buttons -->
+                <div class="lg:col-span-7 flex flex-col justify-between h-full space-y-4">
+                    <div class="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm relative min-h-[220px] flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-red-600 tracking-wider uppercase block mb-2">Pernyataan BPUPK:</span>
+                            <p id="text-pertanyaan" class="text-base md:text-xl font-bold text-slate-800 leading-relaxed">
+                                BPUPK dibentuk oleh pemerintah pendudukan Jepang pada masa Perang Dunia II untuk mempelajari dan mempersiapkan hal-hal yang berkaitan dengan kemerdekaan Indonesia.
+                            </p>
+                        </div>
+
+                        <!-- Manual Choice Buttons (Fallback & Accessibility) -->
+                        <div class="mt-6">
+                            <p class="text-xs text-slate-500 font-medium mb-2 text-center">
+                                Jawaban dengan Gestur Tangan Kamera <span class="font-bold">atau</span> Tekan Tombol di Bawah:
+                            </p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="submitAnswer(true)" class="group bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-500 text-emerald-800 font-bold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition active:scale-95">
+                                    <span class="text-xl group-hover:scale-125 transition transform">✋</span>
+                                    <span>BENAR (Tangan Kanan)</span>
+                                </button>
+                                <button onclick="submitAnswer(false)" class="group bg-red-50 hover:bg-red-100 border-2 border-red-500 text-red-800 font-bold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition active:scale-95">
+                                    <span class="text-xl group-hover:scale-125 transition transform">🤚</span>
+                                    <span>SALAH (Tangan Kiri)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Box (Hidden by default, overlays or shows below) -->
+                    <div id="feedback-box" class="hidden p-4 rounded-2xl border-2 transition-all duration-300">
+                        <div class="flex items-start space-x-3">
+                            <span id="feedback-icon" class="text-2xl">🎉</span>
+                            <div>
+                                <h4 id="feedback-title" class="font-extrabold text-base">BENAR!</h4>
+                                <p id="feedback-explanation" class="text-xs md:text-sm mt-1 leading-relaxed">
+                                    Penjelasan mengenai latar belakang BPUPK...
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Real-time Camera Feed & Gesture Tracking -->
+                <div class="lg:col-span-5 flex flex-col items-center">
+                    <div class="w-full bg-slate-900 rounded-2xl p-2 relative shadow-lg overflow-hidden border-2 border-slate-800">
+                        
+                        <!-- Camera Feed Canvas Container -->
+                        <div class="relative w-full aspect-[4/3] bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center">
+                            
+                            <!-- Video Input Element -->
+                            <video id="webcam" class="absolute inset-0 w-full h-full object-cover mirror-video" playsinline></video>
+                            <!-- MediaPipe Output Canvas Overlay -->
+                            <canvas id="output-canvas" class="absolute inset-0 w-full h-full mirror-video z-10"></canvas>
+
+                            <!-- Gesture Detection Indicator Bar Overlay -->
+                            <div id="camera-overlay-status" class="absolute top-3 left-3 right-3 z-20 flex items-center justify-between bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 text-xs text-white">
+                                <div class="flex items-center space-x-2">
+                                    <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                                    <span id="status-text" class="font-semibold text-slate-200">Mempersiapkan Kamera...</span>
+                                </div>
+                                <span id="hand-side-badge" class="font-bold text-amber-300">--</span>
+                            </div>
+
+                            <!-- Gesture Hold Radial Meter -->
+                            <div id="hold-indicator" class="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-20 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 flex items-center space-x-3 hidden">
+                                <div class="relative w-8 h-8 flex items-center justify-center">
+                                    <svg class="w-8 h-8 transform -rotate-90">
+                                        <circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="3" class="text-slate-700" fill="transparent" />
+                                        <circle id="holding-circle" cx="16" cy="16" r="12" stroke="currentColor" stroke-width="3" class="text-amber-400 holding-ring" fill="transparent" stroke-dasharray="75.39" stroke-dashoffset="75.39" stroke-linecap="round" />
+                                    </svg>
+                                    <span id="hold-percent" class="absolute text-[10px] font-black text-white">0%</span>
+                                </div>
+                                <span id="hold-label" class="text-xs font-bold text-white uppercase tracking-wider">Tahan Gerakan...</span>
+                            </div>
+
+                            <!-- Camera Fallback Alert -->
+                            <div id="camera-fallback" class="hidden absolute inset-0 z-30 bg-slate-900/95 p-6 flex flex-col items-center justify-center text-center space-y-3">
+                                <i class="fa-solid fa-video-slash text-3xl text-amber-400"></i>
+                                <h5 class="text-white font-bold text-sm">Kamera Tidak Aktif / Izinkan Akses</h5>
+                                <p class="text-xs text-slate-300">Kamu tetap bisa bermain secara lancar menggunakan tombol <span class="text-emerald-400 font-bold">BENAR</span> dan <span class="text-red-400 font-bold">SALAH</span> di sebelah kiri!</p>
+                            </div>
+                        </div>
+
+                        <!-- Gesture Guide legend under video -->
+                        <div class="mt-2 grid grid-cols-2 gap-1.5 text-center text-[11px] text-slate-300 font-medium">
+                            <div class="bg-slate-800/80 p-1.5 rounded-lg border border-slate-700 flex items-center justify-center space-x-1">
+                                <span>✋ Tangan Kanan</span>
+                                <span class="text-emerald-400 font-bold">= BENAR</span>
+                            </div>
+                            <div class="bg-slate-800/80 p-1.5 rounded-lg border border-slate-700 flex items-center justify-center space-x-1">
+                                <span>🤚 Tangan Kiri</span>
+                                <span class="text-red-400 font-bold">= SALAH</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 3. HALAMAN HASIL / RESULT SCREEN -->
+        <section id="screen-result" class="w-full glass-card rounded-3xl p-6 md:p-10 hidden transition-all duration-300">
+            <div class="text-center max-w-2xl mx-auto space-y-6">
+                
+                <div class="inline-block p-3 bg-red-100 rounded-full text-red-700 text-3xl mb-1">
+                    🇮🇩
+                </div>
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-900">PERMAINAN SELESAI!</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Terima kasih telah mempelajari sejarah perjuangan para pendiri bangsa dalam persidangan BPUPK.
+                    </p>
+                </div>
+
+                <!-- Identitas & Score Badge -->
+                <div class="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <div class="md:text-left border-b md:border-b-0 md:border-r border-slate-200 pb-3 md:pb-0">
+                        <span class="text-xs text-slate-400 font-bold uppercase block">Pemain</span>
+                        <h4 id="result-nama" class="font-bold text-slate-800 text-base">Nama Siswa</h4>
+                        <span id="result-kelas" class="text-xs text-red-700 font-semibold bg-red-50 px-2 py-0.5 rounded-md border border-red-200">Kelas VII A</span>
+                    </div>
+
+                    <div class="py-2">
+                        <span class="text-xs text-slate-400 font-bold uppercase block">Nilai Akhir</span>
+                        <div id="result-skor" class="text-5xl font-black text-red-700 my-1">100</div>
+                        <span id="result-kategori" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            Sangat Baik
+                        </span>
+                    </div>
+
+                    <div class="md:text-right border-t md:border-t-0 md:border-l border-slate-200 pt-3 md:pt-0 space-y-1 text-xs text-slate-600">
+                        <div>Benar: <b id="result-benar" class="text-emerald-600 font-extrabold text-sm">15</b></div>
+                        <div>Salah: <b id="result-salah" class="text-red-600 font-extrabold text-sm">0</b></div>
+                        <div>Waktu: <b id="result-waktu" class="text-slate-800 font-mono font-bold">02:15</b></div>
+                    </div>
+                </div>
+
+                <!-- Pesan Edukatif / Reflektif -->
+                <div class="bg-amber-50 border border-amber-300 p-4 rounded-2xl text-left flex items-start space-x-3">
+                    <i class="fa-solid fa-lightbulb text-amber-600 text-xl mt-0.5"></i>
+                    <div>
+                        <h5 class="font-bold text-amber-900 text-sm">Catatan Pembelajaran:</h5>
+                        <p id="result-pesan" class="text-xs md:text-sm text-amber-800 mt-1 leading-relaxed">
+                            Kamu telah memahami proses pembentukan BPUPK dan gagasan para tokoh. Terus tingkatkan peneladanan nilai-nilai musyawarah dan mufakat dalam kehidupan sehari-hari!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FITUR REFLEKSI SISWA -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 text-left space-y-4">
+                    <h4 class="font-extrabold text-slate-800 text-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-pen-to-square text-red-600"></i>
+                        <span>Refleksi Pembelajaran Siswa</span>
+                    </h4>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            1. Apa hal yang paling menarik dari proses persidangan BPUPK?
+                        </label>
+                        <select id="refleksi-opsi" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="Gagasan para tokoh dasar negara">Gagasan & Pidato para Tokoh Bangsa</option>
+                            <option value="Perbedaan pendapat yang tetap saling menghormati">Perbedaan Pendapat yang Tetap Saling Menghormati</option>
+                            <option value="Proses musyawarah untuk mufakat">Proses Musyawarah untuk Mufakat</option>
+                            <option value="Semangat perjuangan menuju kemerdekaan">Semangat Perjuangan Menuju Kemerdekaan</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            2. Tuliskan satu nilai teladan dari tokoh BPUPK yang ingin kamu terapkan:
+                        </label>
+                        <textarea id="refleksi-esai" rows="2" placeholder="Contoh: Menghargai pendapat teman saat berdiskusi di kelas..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button onclick="startGame()" class="flex-1 bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>MAIN LAGI</span>
+                    </button>
+                    <button onclick="showReviewMaterial()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-solid fa-book"></i>
+                        <span>PELAJARI MATERI</span>
+                    </button>
+                    <button onclick="showScreen('screen-start')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-5 rounded-xl transition flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-solid fa-house"></i>
+                        <span>BERANDA</span>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. HALAMAN RANGKUMAN MATERI BPUPK -->
+        <section id="screen-materi" class="w-full glass-card rounded-3xl p-6 md:p-8 hidden transition-all duration-300 max-w-4xl">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+                <div>
+                    <h3 class="text-2xl font-extrabold text-slate-900">Rangkuman Sejarah BPUPK</h3>
+                    <p class="text-xs text-slate-500">Bahan belajar Pendidikan Pancasila Kelas VII SMP</p>
+                </div>
+                <button onclick="showScreen('screen-start')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs flex items-center space-x-1">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Kembali</span>
+                </button>
+            </div>
+
+            <div class="space-y-6 text-sm text-slate-700 max-h-[60vh] overflow-y-auto pr-2">
+                
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-red-700 text-base mb-2">1. Latar Belakang Pembentukan</h4>
+                    <p class="leading-relaxed text-xs md:text-sm">
+                        Pada akhir Perang Dunia II (1944-1945), kedudukan Jepang semakin terdesak oleh pasukan Sekutu. Untuk menarik simpati rakyat Indonesia, pemerintah pendudukan Jepang melalui Letnan Jenderal Kumakichi Harada mengumumkan pembentukan BPUPK pada tanggal <b>1 Maret 1945</b>.
+                    </p>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-red-700 text-base mb-2">2. Identitas & Pelantikan BPUPK</h4>
+                    <p class="leading-relaxed text-xs md:text-sm">
+                        BPUPK (Dokuritsu Junbi Cosakai) resmi dilantik pada tanggal <b>28 Mei 1945</b> di Gedung Chuuou Sangi-In (sekarang Gedung Pancasila, Jakarta). BPUPK dipimpin oleh <b>Dr. K.R.T. Radjiman Wedyodiningrat</b> dengan 62 anggota Indonesia dan 7 anggota perwakilan Jepang (pengamat).
+                    </p>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-red-700 text-base mb-2">3. Persidangan Pertama (29 Mei – 1 Juni 1945)</h4>
+                    <p class="leading-relaxed text-xs md:text-sm">
+                        Fokus persidangan pertama adalah merumuskan dasar negara Indonesia merdeka. Tiga tokoh utama menyampaikan gagasan:
+                    </p>
+                    <ul class="list-disc list-inside mt-2 space-y-1 text-xs">
+                        <li><b>Mr. Mohammad Yamin (29 Mei 1945):</b> Usulan asas Peri Kebangsaan, Kemanusiaan, Ketuhanan, Kerakyatan, Kesejahteraan Rakyat.</li>
+                        <li><b>Mr. Soepomo (31 Mei 1945):</b> Paham Negara Integralistik (Persatuan), Kekeluargaan, dan Keseimbangan Lahir Batin.</li>
+                        <li><b>Ir. Soekarno (1 Juni 1945):</b> Menyampaikan 5 prinsip dasar yang dinamakan <b>Pancasila</b> (Kebangsaan, Internasionalisme/Kemanusiaan, Mufakat/Demokrasi, Kesejahteraan Sosial, Ketuhanan yang Maha Esa).</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-red-700 text-base mb-2">4. Suasana Persidangan & Nilai Keteladanan</h4>
+                    <p class="leading-relaxed text-xs md:text-sm">
+                        Persidangan berjalan penuh semangat kebangsaan, kekeluargaan, dan saling menghormati meskipun terdapat perbedaan gagasan yang tajam. Para pendiri bangsa mengutamakan persatuan dan kepentingan seluruh rakyat Indonesia di atas kepentingan pribadi/golongan.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-200 text-center">
+                <button onclick="startGame()" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-8 rounded-xl shadow-md transition text-sm">
+                    Siap Menguji Pemahaman! (Mulai Game)
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL PETUNJUK PERMAINAN -->
+    <div id="modal-petunjuk" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-5 transform transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-extrabold text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-info text-red-600"></i>
+                    <span>Petunjuk Permainan</span>
+                </h3>
+                <button onclick="toggleModal('modal-petunjuk', false)" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs md:text-sm text-slate-600">
+                <div class="flex items-start space-x-3 bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                    <span class="text-2xl">✋</span>
+                    <div>
+                        <b class="text-emerald-800 block">Tangan Kanan = JAWABAN BENAR</b>
+                        Angkat tangan kananmu di depan kamera hingga sistem mendeteksi dan menahan indikator selama ~0.9 detik.
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 bg-red-50 p-3 rounded-xl border border-red-200">
+                    <span class="text-2xl">🤚</span>
+                    <div>
+                        <b class="text-red-800 block">Tangan Kiri = JAWABAN SALAH</b>
+                        Angkat tangan kirimu di depan kamera hingga sistem mendeteksi dan menahan indikator selama ~0.9 detik.
+                    </div>
+                </div>
+
+                <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 text-xs">
+                    <b class="text-slate-800 block mb-1">💡 Tips Penting:</b>
+                    <ul class="list-disc list-inside space-y-1 text-slate-600">
+                        <li>Pastikan pencahayaan ruangan cukup terang.</li>
+                        <li>Tampilkan seluruh telapak tangan di dalam kotak kamera.</li>
+                        <li>Jika kamera tidak tersedia, kamu bisa menekan tombol BENAR/SALAH secara langsung di layar.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="toggleModal('modal-petunjuk', false)" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-2.5 rounded-xl text-sm transition">
+                Mengerti & Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-4 text-center border-t border-slate-800">
+        <div class="max-w-5xl mx-auto px-4">
+            <p>© 2026 Media Pembelajaran Interaktif Pendidikan Pancasila SMP | Didukung MediaPipe Hand Tracking</p>
+        </div>
+    </footer>
+
+    <script>
+        /* ==========================================================================
+           DATA SOAL PEMBELAJARAN (15 PERNYATAAN BENAR / SALAH)
+           Format: question (string), answer (boolean), difficulty, category, explanation
+           ========================================================================== */
+        const questions = [
+            // Submateri 1: Latar Belakang Pembentukan BPUPK
+            {
+                question: "BPUPK dibentuk oleh pemerintah pendudukan Jepang pada masa Perang Dunia II untuk mempelajari dan mempersiapkan hal-hal penting terkait kemerdekaan Indonesia.",
+                answer: true,
+                difficulty: "🟢 Mudah",
+                category: "Latar Belakang",
+                explanation: "BENAR! BPUPK (Dokuritsu Junbi Cosakai) dibentuk oleh pemerintah pendudukan Jepang pada 1 Maret 1945 untuk menyelidiki dan mempersiapkan kemerdekaan Indonesia."
+            },
+            {
+                question: "Pemerintah Jepang mengumumkan rencana pembentukan BPUPK setelah posisi militer mereka terdesak oleh pasukan Sekutu dalam Perang Pasifik.",
+                answer: true,
+                difficulty: "🟡 Sedang",
+                category: "Latar Belakang",
+                explanation: "BENAR! Kekalahan demi kekalahan dalam Perang Dunia II mendorong Jepang berjanji memberikan kemerdekaan untuk menarik simpati dan dukungan rakyat Indonesia."
+            },
+            {
+                question: "BPUPK resmi dibentuk setelah Indonesia memproklamasikan kemerdekaan pada tanggal 17 Agustus 1945.",
+                answer: false,
+                difficulty: "🟢 Mudah",
+                category: "Latar Belakang",
+                explanation: "SALAH! BPUPK dibentuk SEBELUM proklamasi kemerdekaan (Maret 1945) sebagai wadah merumuskan dasar negara dan rancangan UUD."
+            },
+
+            // Submateri 2: Pembentukan & Keanggotaan BPUPK
+            {
+                question: "Kepanjangan dari singkatan BPUPK adalah Badan Penyelidik Usaha-usaha Persiapan Kemerdekaan.",
+                answer: true,
+                difficulty: "🟢 Mudah",
+                category: "Pembentukan BPUPK",
+                explanation: "BENAR! BPUPK adalah singkatan resmi dari Badan Penyelidik Usaha-usaha Persiapan Kemerdekaan (Dokuritsu Junbi Cosakai)."
+            },
+            {
+                question: "BPUPK resmi dilantik pada tanggal 28 Mei 1945 di Gedung Chuuou Sangi-In, Jakarta (sekarang Gedung Pancasila).",
+                answer: true,
+                difficulty: "🟡 Sedang",
+                category: "Pembentukan BPUPK",
+                explanation: "BENAR! Upacara pelantikan BPUPK dilaksanakan pada 28 Mei 1945, dan persidangan pertamanya dimulai esok harinya pada 29 Mei 1945."
+            },
+            {
+                question: "Anggota BPUPK seluruhnya terdiri dari tokoh Indonesia tanpa melibatkan perwakilan sama sekali dari pihak Jepang.",
+                answer: false,
+                difficulty: "🔴 Menantang",
+                category: "Pembentukan BPUPK",
+                explanation: "SALAH! BPUPK memiliki 62 anggota utama dari Indonesia dan 7 anggota perwakilan Jepang (seperti Ichibangase Yosio) yang bertindak sebagai pengamat."
+            },
+
+            // Submateri 3: Tokoh-Tokoh BPUPK
+            {
+                question: "Ketua (Kaichou) BPUPK yang memimpin jalannya persidangan adalah Dr. K.R.T. Radjiman Wedyodiningrat.",
+                answer: true,
+                difficulty: "🟢 Mudah",
+                category: "Tokoh BPUPK",
+                explanation: "BENAR! Dr. Radjiman Wedyodiningrat diangkat sebagai ketua BPUPK didampingi Raden Pandji Soeroso dan Ichibangase Yosio sebagai wakil ketua."
+            },
+            {
+                question: "Tiga tokoh utama yang secara khusus menyampaikan gagasan dasar negara dalam sidang pertama BPUPK adalah Mr. Mohammad Yamin, Mr. Soepomo, dan Ir. Soekarno.",
+                answer: true,
+                difficulty: "🟡 Sedang",
+                category: "Tokoh BPUPK",
+                explanation: "BENAR! Ketiga tokoh tersebut secara berurutan menyampaikan pemikiran mengenai dasar negara Indonesia merdeka pada rentang 29 Mei - 1 Juni 1945."
+            },
+
+            // Submateri 4: Suasana Persidangan BPUPK
+            {
+                question: "Suasana persidangan BPUPK diwarnai pertengkaran hebat yang menyebabkan para tokoh saling membenci dan memusuhi.",
+                answer: false,
+                difficulty: "🟡 Sedang",
+                category: "Suasana Persidangan",
+                explanation: "SALAH! Meskipun terdapat perbedaan pandangan yang tajam, suasana persidangan tetap dilandasi semangat kekeluargaan, saling menghormati, dan musyawarah mufakat."
+            },
+            {
+                question: "Sikap utama para tokoh BPUPK yang patut kita teladani adalah mengutamakan kepentingan bangsa dan negara di atas kepentingan pribadi maupun golongan.",
+                answer: true,
+                difficulty: "🔴 Menantang",
+                category: "Suasana Persidangan",
+                explanation: "BENAR! Para pendiri bangsa menunjukkan jiwa nasionalisme yang tinggi dengan menempatkan persatuan nasional di atas segala kepentingan kelompok."
+            },
+
+            // Submateri 5: Gagasan Dasar Negara
+            {
+                question: "Ir. Soekarno menyampaikan pidato bersejarah mengenai usulan dasar negara yang ia beri nama 'Pancasila' pada tanggal 1 Juni 1945.",
+                answer: true,
+                difficulty: "🟢 Mudah",
+                category: "Gagasan Dasar Negara",
+                explanation: "BENAR! Pidato Ir. Soekarno pada 1 Juni 1945 memperkenalkan nama Pancasila, yang kini diperingati sebagai Hari Lahir Pancasila."
+            },
+            {
+                question: "Mr. Soepomo mengusulkan konsep 'Paham Negara Integralistik' yang berarti negara menyatu dengan seluruh rakyatnya tanpa memihak golongan tertentu.",
+                answer: true,
+                difficulty: "🔴 Menantang",
+                category: "Gagasan Dasar Negara",
+                explanation: "BENAR! Dalam pidatonya 31 Mei 1945, Mr. Soepomo menekankan teori persatuan (integralistik) yang mengatasi paham perseorangan atau golongan."
+            },
+            {
+                question: "Panitia Sembilan dibentuk di luar sidang resmi BPUPK untuk menyelaraskan perbedaan pendapat mengenai rumusan dasar negara.",
+                answer: true,
+                difficulty: "🔴 Menantang",
+                category: "Gagasan Dasar Negara",
+                explanation: "BENAR! Panitia Sembilan dibentuk pada masa reses untuk mematangkan konsep dasar negara, yang kemudian menghasilkan kesepakatan 'Piagam Jakarta' pada 22 Juni 1945."
+            },
+            {
+                question: "Sidang kedua BPUPK pada tanggal 10–17 Juli 1945 berfokus merumuskan Rancangan Undang-Undang Dasar (UUD).",
+                answer: true,
+                difficulty: "🟡 Sedang",
+                category: "Gagasan Dasar Negara",
+                explanation: "BENAR! Sidang kedua BPUPK berfokus pada penyusunan RUU Dasar, bentuk negara (Republik), wilayah negara, serta hak-hak warga negara."
+            },
+            {
+                question: "Istilah 'Pancasila' diusulkan oleh Ir. Soekarno atas saran dari seorang ahli bahasa.",
+                answer: true,
+                difficulty: "🔴 Menantang",
+                category: "Gagasan Dasar Negara",
+                explanation: "BENAR! Soekarno menjelaskan bahwa lima prinsip tersebut atas petunjuk seorang teman ahli bahasa dinamakan Pancasila (Panca = lima, Sila = asas/dasar)."
+            }
+        ];
+
+        /* ==========================================================================
+           GLOBAL STATE VARIABLES
+           ========================================================================== */
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let isQuestionActive = false;
+
+        // Gesture stabilization state
+        let detectedGesture = null; // 'BENAR' or 'SALAH'
+        let gestureHoldTime = 0;
+        const GESTURE_REQUIRED_HOLD = 0.9; // Target seconds (0.9s stabilization)
+        let lastTimestamp = null;
+
+        // Camera & MediaPipe objects
+        let handsDetector = null;
+        let cameraStream = null;
+
+        /* Sound Synthesizer via Web Audio API (No external assets required!) */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3); // A5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                osc.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.4); // A2
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'click') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.08);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            }
+        }
+
+        /* ==========================================================================
+           UI NAVIGATION FUNCTIONS
+           ========================================================================== */
+        function showScreen(screenId) {
+            ['screen-start', 'screen-game', 'screen-result', 'screen-materi'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleModal(modalId, show) {
+            playSound('click');
+            const modal = document.getElementById(modalId);
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function showReviewMaterial() {
+            playSound('click');
+            showScreen('screen-materi');
+        }
+
+        /* ==========================================================================
+           GAME ENGINE & QUESTION CONTROLLER
+           ========================================================================== */
+        function startGame() {
+            playSound('click');
+            const namaInput = document.getElementById('input-nama').value.trim();
+            if (!namaInput) {
+                // Inline feedback without alert
+                document.getElementById('input-nama').focus();
+                document.getElementById('input-nama').classList.add('border-red-500', 'ring-2', 'ring-red-300');
+                return;
+            }
+            document.getElementById('input-nama').classList.remove('border-red-500', 'ring-2', 'ring-red-300');
+
+            // Reset Game Variables
+            currentQuestionIndex = 0;
+            score = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            timerSeconds = 0;
+
+            showScreen('screen-game');
+            startTimer();
+            initCamera();
+            loadQuestion(0);
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                const secs = String(timerSeconds % 60).padStart(2, '0');
+                document.getElementById('text-timer').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function loadQuestion(index) {
+            if (index >= questions.length) {
+                endGame();
+                return;
+            }
+
+            const q = questions[index];
+            document.getElementById('badge-soal').textContent = `SOAL ${index + 1}/${questions.length}`;
+            document.getElementById('badge-kesulitan').textContent = q.difficulty;
+            document.getElementById('badge-kategori').textContent = q.category;
+            document.getElementById('text-pertanyaan').textContent = q.question;
+            document.getElementById('text-skor').textContent = score;
+
+            // Progress bar
+            const pct = ((index + 1) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+
+            // Reset feedback
+            document.getElementById('feedback-box').classList.add('hidden');
+            
+            // Reset gesture state
+            detectedGesture = null;
+            gestureHoldTime = 0;
+            updateHoldUI(0, '');
+
+            isQuestionActive = true;
+        }
+
+        function submitAnswer(userAnswer) {
+            if (!isQuestionActive) return;
+            isQuestionActive = false;
+
+            const q = questions[currentQuestionIndex];
+            const isCorrect = (userAnswer === q.answer);
+
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackExp = document.getElementById('feedback-explanation');
+
+            feedbackBox.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-400', 'text-emerald-900', 'bg-red-50', 'border-red-400', 'text-red-900');
+
+            if (isCorrect) {
+                playSound('correct');
+                score += 100;
+                correctCount++;
+                feedbackIcon.textContent = '🎉';
+                feedbackTitle.textContent = 'BENAR!';
+                feedbackBox.classList.add('bg-emerald-50', 'border-emerald-400', 'text-emerald-900');
+            } else {
+                playSound('wrong');
+                wrongCount++;
+                feedbackIcon.textContent = '❌';
+                feedbackTitle.textContent = 'BELUM TEPAT!';
+                feedbackBox.classList.add('bg-red-50', 'border-red-400', 'text-red-900');
+            }
+
+            feedbackExp.textContent = q.explanation;
+            document.getElementById('text-skor').textContent = score;
+
+            // Auto proceed to next question after 2.8s
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            }, 2800);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            isQuestionActive = false;
+
+            const total = questions.length;
+            const finalScore = Math.round((correctCount / total) * 100);
+
+            const nama = document.getElementById('input-nama').value.trim() || 'Siswa SMP';
+            const kelas = document.getElementById('input-kelas').value;
+
+            document.getElementById('result-nama').textContent = nama;
+            document.getElementById('result-kelas').textContent = `Kelas ${kelas}`;
+            document.getElementById('result-skor').textContent = finalScore;
+            document.getElementById('result-benar').textContent = correctCount;
+            document.getElementById('result-salah').textContent = wrongCount;
+
+            const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+            const secs = String(timerSeconds % 60).padStart(2, '0');
+            document.getElementById('result-waktu').textContent = `${mins}:${secs}`;
+
+            // Kategori Feedback
+            const katBadge = document.getElementById('result-kategori');
+            const pesText = document.getElementById('result-pesan');
+
+            if (finalScore >= 90) {
+                katBadge.textContent = 'Sangat Baik 🏆';
+                katBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
+                pesan = 'Luar biasa! Kamu sangat menguasai latar belakang pembentukan BPUPK, nama tokoh, hingga suasana persidangan. Pertahankan semangat belajar Pancasila!';
+            } else if (finalScore >= 75) {
+                katBadge.textContent = 'Baik 👍';
+                katBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-300';
+                pesan = 'Bagus sekali! Pemahamanmu mengenai perumusan dasar negara BPUPK sudah baik. Terus cermati detail gagasan para tokoh pendiri bangsa.';
+            } else if (finalScore >= 60) {
+                katBadge.textContent = 'Cukup 📚';
+                katBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300';
+                pesan = 'Hasil yang cukup baik. Coba luangkan waktu membaca kembali rangkuman materi persidangan BPUPK untuk memperkuat hafalan dan pemahamanmu.';
+            } else {
+                katBadge.textContent = 'Perlu Belajar Lagi 💪';
+                katBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-800 border border-red-300';
+                pesan = 'Jangan berkecil hati! Sejarah perumusan Pancasila sangat menarik untuk dipelajari kembali. Buka menu Rangkuman Materi lalu coba mainkan lagi!';
+            }
+            pesText.textContent = pesan;
+
+            showScreen('screen-result');
+        }
+
+        /* ==========================================================================
+           CAMERA & MEDIAPIPE HAND TRACKING INTEGRATION
+           ========================================================================== */
+        async function initCamera() {
+            const videoElement = document.getElementById('webcam');
+            const canvasElement = document.getElementById('output-canvas');
+            const canvasCtx = canvasElement.getContext('2d');
+            const statusText = document.getElementById('status-text');
+            const statusDot = document.getElementById('status-dot');
+            const fallbackAlert = document.getElementById('camera-fallback');
+
+            if (handsDetector) return; // Already initialized
+
+            try {
+                // Initialize MediaPipe Hands
+                handsDetector = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+                });
+
+                handsDetector.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.6,
+                    minTrackingConfidence: 0.6
+                });
+
+                handsDetector.onResults((results) => {
+                    // Resize canvas dynamically
+                    canvasElement.width = videoElement.videoWidth || 640;
+                    canvasElement.height = videoElement.videoHeight || 480;
+
+                    canvasCtx.save();
+                    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+                    let currentHandDetected = null;
+
+                    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                        const landmarks = results.multiHandLandmarks[0];
+                        const handedness = results.multiHandedness[0]; // 'Left' or 'Right'
+
+                        // Draw hand skeleton
+                        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#fbbf24', lineWidth: 3 });
+                        drawLandmarks(canvasCtx, landmarks, { color: '#ef4444', lineWidth: 2, radius: 4 });
+
+                        // Deteksi tangan langsung (sesuai anatomi tangan pengguna):
+                        // 'Right' = Tangan Kanan Pengguna (BENAR ✋)
+                        // 'Left' = Tangan Kiri Pengguna (SALAH 🤚)
+                        const handLabel = handedness.label; 
+                        
+                        if (handLabel === 'Right') {
+                            currentHandDetected = 'BENAR';
+                            document.getElementById('hand-side-badge').textContent = '✋ TANGAN KANAN';
+                            document.getElementById('hand-side-badge').className = 'font-bold text-emerald-400';
+                        } else {
+                            currentHandDetected = 'SALAH';
+                            document.getElementById('hand-side-badge').textContent = '🤚 TANGAN KIRI';
+                            document.getElementById('hand-side-badge').className = 'font-bold text-red-400';
+                        }
+
+                        statusText.textContent = `Terdeteksi: ${currentHandDetected}`;
+                        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                    } else {
+                        statusText.textContent = 'Mencari Tangan...';
+                        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
+                        document.getElementById('hand-side-badge').textContent = '--';
+                    }
+
+                    canvasCtx.restore();
+
+                    // Process Gesture Holding Logic
+                    processGestureHolding(currentHandDetected);
+                });
+
+                // Start Camera Feed
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await handsDetector.send({ image: videoElement });
+                    },
+                    width: 640,
+                    height: 480
+                });
+
+                await camera.start();
+                fallbackAlert.classList.add('hidden');
+
+            } catch (err) {
+                console.warn('Camera permission or MediaPipe initialization failed:', err);
+                fallbackAlert.classList.remove('hidden');
+                statusText.textContent = 'Kamera Tidak Aktif';
+                statusDot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+            }
+        }
+
+        /* ==========================================================================
+           GESTURE STABILIZATION TIMER (~0.9 SECONDS HOLD)
+           ========================================================================== */
+        function processGestureHolding(currentGesture) {
+            if (!isQuestionActive) {
+                updateHoldUI(0, '');
+                return;
+            }
+
+            const now = performance.now();
+            if (!lastTimestamp) lastTimestamp = now;
+            const delta = (now - lastTimestamp) / 1000;
+            lastTimestamp = now;
+
+            if (currentGesture && (currentGesture === 'BENAR' || currentGesture === 'SALAH')) {
+                if (detectedGesture === currentGesture) {
+                    gestureHoldTime += delta;
+                } else {
+                    detectedGesture = currentGesture;
+                    gestureHoldTime = 0;
+                }
+
+                const progress = Math.min(gestureHoldTime / GESTURE_REQUIRED_HOLD, 1.0);
+                updateHoldUI(progress, detectedGesture);
+
+                if (gestureHoldTime >= GESTURE_REQUIRED_HOLD) {
+                    const answerBool = (detectedGesture === 'BENAR');
+                    gestureHoldTime = 0;
+                    detectedGesture = null;
+                    updateHoldUI(0, '');
+                    submitAnswer(answerBool);
+                }
+            } else {
+                detectedGesture = null;
+                gestureHoldTime = 0;
+                updateHoldUI(0, '');
+            }
+        }
+
+        function updateHoldUI(progress, gestureName) {
+            const holdContainer = document.getElementById('hold-indicator');
+            const holdCircle = document.getElementById('holding-circle');
+            const holdPercent = document.getElementById('hold-percent');
+            const holdLabel = document.getElementById('hold-label');
+
+            if (progress > 0) {
+                holdContainer.classList.remove('hidden');
+                const circumference = 75.39; // 2 * pi * r (r=12)
+                const offset = circumference - (progress * circumference);
+                holdCircle.style.strokeDashoffset = offset;
+                
+                const pctVal = Math.round(progress * 100);
+                holdPercent.textContent = `${pctVal}%`;
+                holdLabel.textContent = `MENGUNCI: ${gestureName}`;
+
+                if (gestureName === 'BENAR') holdCircle.setAttribute('stroke', '#10b981');
+                else holdCircle.setAttribute('stroke', '#ef4444');
+            } else {
+                holdContainer.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
